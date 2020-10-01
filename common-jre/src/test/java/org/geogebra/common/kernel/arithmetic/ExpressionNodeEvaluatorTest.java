@@ -63,4 +63,11 @@ public class ExpressionNodeEvaluatorTest extends BaseUnitTest {
 		assertThat(minusOne, notNullValue());
 		assertThat(minusOne.isSimpleNumber(), is(true));
 	}
+
+	@Test
+	public void testCalculationWithMinusOneIsNotSimpleNumber() {
+		ExpressionNode minusOneCalc = parseExpression("(-1)(3)");
+		assertThat(minusOneCalc, notNullValue());
+		assertThat(minusOneCalc.isSimpleNumber(), is(false));
+	}
 }
