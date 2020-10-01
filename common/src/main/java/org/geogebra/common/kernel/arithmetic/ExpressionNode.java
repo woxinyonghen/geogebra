@@ -3721,14 +3721,13 @@ public class ExpressionNode extends ValidExpression
 	}
 
 	private boolean hasSimpleNumbers() {
-		return areLeftAndRightNumbers() && isLeftOrRightSpecial() && !isRightPiOrE();
+		return areLeftAndRightNumbers() && isRightDeg() && !isRightPiOrE();
 	}
 
 	private boolean isRightPiOrE() {
 		if (getRight() == null) {
 			return false;
 		}
-
 		double value = getRight().evaluateDouble();
 		return DoubleUtil.isEqual(value, Math.PI) || DoubleUtil.isEqual(value, Math.E);
 	}
@@ -3737,12 +3736,8 @@ public class ExpressionNode extends ValidExpression
 		return getLeft().unwrap() instanceof NumberValue && getRight().unwrap() instanceof MyDouble;
 	}
 
-	private boolean isLeftOrRightSpecial() {
-		double evaluatedLeft = getLeft().evaluateDouble();
-		boolean isLeftMinusOne = MyDouble.exactEqual(evaluatedLeft, -1);
-		double evaluatedRight = getRight().evaluateDouble();
-		boolean isRightDeg = MyDouble.exactEqual(evaluatedRight, MyMath.DEG);
-		return isLeftMinusOne || isRightDeg;
+	private boolean isRightDeg() {
+		return MyDouble.exactEqual(getRight().evaluateDouble(), MyMath.DEG);
 	}
 
 	public void setForceSurfaceCartesian() {
