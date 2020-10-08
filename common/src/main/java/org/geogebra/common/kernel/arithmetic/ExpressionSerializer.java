@@ -39,6 +39,8 @@ public class ExpressionSerializer implements ExpressionNodeConstants {
 	 *            serialized right subtree
 	 * @param valueForm
 	 *            whether to show value or symbols
+	 * @param unaryMinus
+	 *            whether to keep unary minus
 	 * @param tpl
 	 *            string template
 	 * @param kernel
@@ -47,7 +49,7 @@ public class ExpressionSerializer implements ExpressionNodeConstants {
 	 */
 	final public static String operationToString(ExpressionValue left, ExpressionValue right,
 			Operation operation, String leftStr, String rightStr, boolean valueForm,
-			StringTemplate tpl, Kernel kernel) {
+			boolean unaryMinus, StringTemplate tpl, Kernel kernel) {
 		ExpressionValue leftEval;
 		StringBuilder sb = new StringBuilder();
 
@@ -342,7 +344,7 @@ public class ExpressionSerializer implements ExpressionNodeConstants {
 			return tpl.minusString(left, right, leftStr, rightStr, valueForm, loc);
 
 		case MULTIPLY:
-			return tpl.multiplyString(left, right, leftStr, rightStr, valueForm, loc);
+			return tpl.multiplyString(left, right, leftStr, rightStr, valueForm, loc, unaryMinus);
 		case DIVIDE:
 			return tpl.divideString(left, right, leftStr, rightStr, valueForm,
 					loc);

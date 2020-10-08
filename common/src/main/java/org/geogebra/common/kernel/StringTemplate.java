@@ -1761,11 +1761,13 @@ public class StringTemplate implements ExpressionNodeConstants {
 	 *            whether to substitute variables
 	 * @param loc
 	 *            localization
+	 * @param unaryMinus
+	 *            whether to keep unary minus
 	 * @return left + right with appropriate brackets
 	 */
 	public String multiplyString(ExpressionValue left, ExpressionValue right,
 			String leftStr, String rightStr, boolean valueForm,
-			Localization loc) {
+			Localization loc, boolean unaryMinus) {
 		StringBuilder sb = new StringBuilder();
 		switch (stringType) {
 
@@ -1798,7 +1800,7 @@ public class StringTemplate implements ExpressionNodeConstants {
 					.opID(left) >= Operation.MULTIPLY.ordinal())) { // not
 				// +,
 				// -
-				if (ExpressionNode.isEqualString(left, -1, !valueForm)) { // unary
+				if (unaryMinus && ExpressionNode.isEqualString(left, -1, !valueForm)) { // unary
 																			// minus
 					nounary = false;
 					sb.append('-');

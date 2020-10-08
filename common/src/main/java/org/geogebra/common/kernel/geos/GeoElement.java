@@ -3654,7 +3654,7 @@ public abstract class GeoElement extends ConstructionElement implements GeoEleme
 
 		}
 		if (definition != null) {
-			return definition.toString(tpl);
+			return definition.toString(tpl, false);
 		}
 		return "";
 	}

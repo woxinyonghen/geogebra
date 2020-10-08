@@ -1430,11 +1430,11 @@ public class ExpressionNode extends ValidExpression
 			if (operation == Operation.RANDOM) {
 				double d = left.evaluateDouble();
 				leftStr = kernel.format(d, StringTemplate.defaultTemplate);
-				ret = ExpressionSerializer.operationToString(left, right,
-						operation, leftStr, rightStr, true, tpl, kernel);
+				ret = ExpressionSerializer.operationToString(left, right, operation,
+						leftStr, rightStr, true, true, tpl, kernel);
 			} else {
-				ret = ExpressionSerializer.operationToString(left, right,
-						operation, leftStr, rightStr, !symbolic, tpl, kernel);
+				ret = ExpressionSerializer.operationToString(left, right, operation,
+						leftStr, rightStr, !symbolic, true, tpl, kernel);
 			}
 		}
 
@@ -1490,6 +1490,20 @@ public class ExpressionNode extends ValidExpression
 	 */
 	@Override
 	final public String toString(StringTemplate tpl) {
+		return toString(tpl, true);
+	}
+
+	/**
+	 * Decide whether the current expression value must be expanded for
+	 * OpenGeoProver. This code helps both the Wu and the Area method.
+	 *
+	 * @param tpl
+	 *			String template
+	 * @param unaryMinus
+	 * 			whether to keep unary minus
+	 * @return a string representation of this node.
+	 */
+	final public String toString(StringTemplate tpl, boolean unaryMinus) {
 
 		if (isSecret()) {
 			return secretMaskingAlgo.getDefinition(tpl);
@@ -1532,7 +1546,7 @@ public class ExpressionNode extends ValidExpression
 			}
 		}
 		return ExpressionSerializer.operationToString(left, right, operation,
-				leftStr, rightStr, false, tpl, kernel);
+				leftStr, rightStr, false, unaryMinus, tpl, kernel);
 	}
 
 	private boolean shaveBrackets() {
@@ -1577,7 +1591,7 @@ public class ExpressionNode extends ValidExpression
 		}
 
 		return ExpressionSerializer.operationToString(left, right, operation,
-				leftStr, rightStr, true, tpl, kernel);
+				leftStr, rightStr, true, true, tpl, kernel);
 	}
 
 	@Override
@@ -1604,7 +1618,7 @@ public class ExpressionNode extends ValidExpression
 		}
 
 		return ExpressionSerializer.operationToString(left, right, operation,
-				leftStr, rightStr, true, tpl, kernel);
+				leftStr, rightStr, true, true, tpl, kernel);
 	}
 
 	/**
@@ -1651,7 +1665,7 @@ public class ExpressionNode extends ValidExpression
 
 		// build latex string
 		ret = ExpressionSerializer.operationToString(left, right, operation,
-				leftStr, rightStr, !symbolic, tpl, kernel);
+				leftStr, rightStr, !symbolic, true, tpl, kernel);
 
 		return checkMathml(ret, tpl);
 	}
@@ -3610,7 +3624,7 @@ public class ExpressionNode extends ValidExpression
 				&& MyDouble.exactEqual(right.evaluateDouble(), Math.PI)) {
 			return tpl.multiplyString(left, right,
 					kernel.format(Math.round(left.evaluateDouble()), tpl),
-					right.toValueString(tpl), true, locale);
+					right.toValueString(tpl), true, locale, true);
 		}
 		if (operation == Operation.DIVIDE) {
 			String leftS = left.isExpressionNode()
