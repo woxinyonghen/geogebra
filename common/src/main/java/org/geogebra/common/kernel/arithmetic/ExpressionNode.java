@@ -1494,9 +1494,6 @@ public class ExpressionNode extends ValidExpression
 	}
 
 	/**
-	 * Decide whether the current expression value must be expanded for
-	 * OpenGeoProver. This code helps both the Wu and the Area method.
-	 *
 	 * @param tpl
 	 *			String template
 	 * @param unaryMinus

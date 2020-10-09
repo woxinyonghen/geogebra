@@ -82,6 +82,7 @@ public class AlgebraItemTest extends BaseUnitTest {
         GeoElement geo = addAvInput("(-1)(9)");
         assertThat(AlgebraItem.shouldShowBothRows(geo), is(true));
     }
+
     @Test
     public void shouldShowBothRowsForMinusTwoCalc() {
         getApp().getSettings().getAlgebra().setStyle(AlgebraStyle.DEFINITION_AND_VALUE);
