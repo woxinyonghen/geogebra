@@ -124,7 +124,7 @@ public abstract class ProbabilityCalculatorView
 	 * maximum number of parameters allowed for a distribution
 	 */
 	protected final static int maxParameterCount = 3;
-	protected double[] parameters;
+	protected GeoNumeric[] parameters;
 	protected boolean isCumulative = false;
 
 	// maps for the distribution ComboBox
@@ -161,8 +161,8 @@ public abstract class ProbabilityCalculatorView
 	protected int probMode = PROB_INTERVAL;
 
 	// interval values
-	private double low = 0;
-	private double high = 1;
+	protected GeoNumeric low;
+	protected GeoNumeric high;
 
 	// current probability result
 	protected double probability;
@@ -206,11 +206,12 @@ public abstract class ProbabilityCalculatorView
 	 */
 	public ProbabilityCalculatorView(App app) {
 		isIniting = true;
-
 		this.app = app;
 		this.loc = app.getLocalization();
 		kernel = app.getKernel();
 		cons = kernel.getConstruction();
+		low = new GeoNumeric(cons, 0);
+		high = new GeoNumeric(cons, 1);
 
 		// Initialize settings and register listener
 		app.getSettings().getProbCalcSettings().addListener(this);
@@ -337,14 +338,14 @@ public abstract class ProbabilityCalculatorView
 	 *            whether it's cumulative
 	 */
 	public void setProbabilityCalculator(Dist distributionType,
-			double[] parameters, boolean isCumulative) {
+			GeoNumeric[] parameters, boolean isCumulative) {
 
 		this.selectedDist = distributionType;
 		this.isCumulative = isCumulative;
 		this.parameters = parameters;
-		if (parameters == null) {
+		if (parameters == null || parameters[0] == null) {
 			this.parameters = ProbabilityManager
-					.getDefaultParameters(selectedDist);
+					.getDefaultParameters(selectedDist, cons);
 		}
 
 		updateAll();
@@ -384,11 +385,11 @@ public abstract class ProbabilityCalculatorView
 	}
 
 	public double getLow() {
-		return low;
+		return low.getDouble();
 	}
 
 	public double getHigh() {
-		return high;
+		return high.getDouble();
 	}
 
 	public int getProbMode() {
@@ -914,7 +915,7 @@ public abstract class ProbabilityCalculatorView
 
 		// override the default decimal place setting
 		if (printDecimals >= 0) {
-			int d = printDecimals < 4 ? 4 : printDecimals;
+			int d = Math.max(printDecimals, 4);
 			highPrecision = StringTemplate.printDecimals(StringType.GEOGEBRA, d,
 					false);
 		} else {
@@ -922,9 +923,8 @@ public abstract class ProbabilityCalculatorView
 					printFigures, false);
 		}
 		// get the formatted string
-		String result = kernel.format(x, highPrecision);
 
-		return result;
+		return kernel.format(x, highPrecision);
 	}
 
 	/**
@@ -1035,9 +1035,9 @@ public abstract class ProbabilityCalculatorView
 		case BINOMIAL:
 			GeoNumeric k = new GeoNumeric(cons);
 			GeoNumeric k2 = new GeoNumeric(cons);
-			GeoNumeric nGeo = new GeoNumeric(cons, parameters[0]);
-			GeoNumeric nPlusOneGeo = new GeoNumeric(cons, parameters[0] + 1);
-			GeoNumeric pGeo = new GeoNumeric(cons, parameters[1]);
+			GeoNumeric nGeo = parameters[0];
+			GeoNumeric nPlusOneGeo = new GeoNumeric(cons, parameters[0].getDouble() + 1);
+			GeoNumeric pGeo = parameters[1];
 
 			AlgoSequence algoSeq = new AlgoSequence(cons, k2, k2,
 					new GeoNumeric(cons, 0.0), nGeo, null);
@@ -1062,8 +1062,8 @@ public abstract class ProbabilityCalculatorView
 
 		case PASCAL:
 
-			nGeo = new GeoNumeric(cons, parameters[0]);
-			pGeo = new GeoNumeric(cons, parameters[1]);
+			nGeo = parameters[0];
+			pGeo = parameters[1];
 			k = new GeoNumeric(cons);
 			k2 = new GeoNumeric(cons);
 
@@ -1101,7 +1101,7 @@ public abstract class ProbabilityCalculatorView
 
 		case POISSON:
 
-			GeoNumeric meanGeo = new GeoNumeric(cons, parameters[0]);
+			GeoNumeric meanGeo = parameters[0];
 			k = new GeoNumeric(cons);
 			k2 = new GeoNumeric(cons);
 
@@ -1139,9 +1139,9 @@ public abstract class ProbabilityCalculatorView
 
 		case HYPERGEOMETRIC:
 
-			double p = parameters[0]; // population size
-			double n = parameters[1]; // n
-			double s = parameters[2]; // sample size
+			double p = parameters[0].getDouble(); // population size
+			double n = parameters[1].getDouble(); // n
+			double s = parameters[2].getDouble(); // sample size
 
 			// ================================================
 			// interval bounds:
@@ -1420,7 +1420,7 @@ public abstract class ProbabilityCalculatorView
 		}
 	}
 
-	protected abstract void setInterval(double low2, double high2);
+	public abstract void setInterval(double low2, double high2);
 
 	@Override
 	public void add(GeoElement geo) {
@@ -1455,7 +1455,7 @@ public abstract class ProbabilityCalculatorView
 			if (geo.equals(lowPoint)) {
 				if (isValidInterval(probMode, lowPoint.getInhomX(),
 						getHigh())) {
-					setLow(lowPoint.getInhomX());
+					low.setValue(lowPoint.getInhomX());
 					updateIntervalProbability();
 					updateGUI();
 					if (probManager.isDiscrete(selectedDist)) {
@@ -1469,7 +1469,7 @@ public abstract class ProbabilityCalculatorView
 			if (geo.equals(highPoint)) {
 				if (isValidInterval(probMode, getLow(),
 						highPoint.getInhomX())) {
-					setHigh(highPoint.getInhomX());
+					high.setValue(highPoint.getInhomX());
 					updateIntervalProbability();
 					updateGUI();
 					if (probManager.isDiscrete(selectedDist)) {
@@ -1655,11 +1655,11 @@ public abstract class ProbabilityCalculatorView
 			} else if (index == 1) {
 				// successes in the population: n >= 0 and <= N, integer
 				isValid[1] = index == 1 && Math.floor(parameter) == parameter
-						&& parameter >= 0 && parameter <= parameters[0];
+						&& parameter >= 0 && parameter <= parameters[0].getDouble();
 			} else if (index == 2) {
 				// sample size: s>= 1 and s<= N, integer
 				isValid[2] = index == 2 && Math.floor(parameter) == parameter
-						&& parameter >= 1 && parameter <= parameters[0];
+						&& parameter >= 1 && parameter <= parameters[0].getDouble();
 			}
 			break;
 
@@ -1795,10 +1795,10 @@ public abstract class ProbabilityCalculatorView
 	/**
 	 * Builds a GeoFunction representation of a given density curve.
 	 * 
-	 * @param distType
+	 * @param type
 	 *            distribution type
-	 * @param parms
-	 *            distribution parameters
+	 * @param cumulative
+	 *            whether it's cumulative
 	 * @return function
 	 */
 	private GeoFunction buildDensityCurveExpression(Dist type,
@@ -1807,10 +1807,10 @@ public abstract class ProbabilityCalculatorView
 		GeoNumeric param1 = null, param2 = null;
 
 		if (parameters.length > 0) {
-			param1 = new GeoNumeric(cons, parameters[0]);
+			param1 = parameters[0];
 		}
 		if (parameters.length > 1) {
-			param2 = new GeoNumeric(cons, parameters[1]);
+			param2 = parameters[1];
 		}
 
 		AlgoDistributionDF ret = null;
@@ -1956,11 +1956,19 @@ public abstract class ProbabilityCalculatorView
 		return meanSigmaStr;
 	}
 
-	protected void setHigh(double high) {
+	protected void setHigh(double highValue) {
+		this.high = new GeoNumeric(cons, highValue);
+	}
+	
+	protected void setHigh(GeoNumeric high) {
 		this.high = high;
 	}
 
-	protected void setLow(double low) {
+	protected void setLow(double lowValue) {
+		this.low = new GeoNumeric(cons, lowValue);
+	}
+	
+	protected void setLow(GeoNumeric low) {
 		this.low = low;
 	}
 
@@ -1969,7 +1977,7 @@ public abstract class ProbabilityCalculatorView
 	 */
 	public boolean isOverlayDefined() {
 		return !((selectedDist == Dist.CAUCHY)
-				|| (selectedDist == Dist.F && parameters[1] < 4));
+				|| (selectedDist == Dist.F && parameters[1].getDouble() < 4));
 	}
 
 	protected HashMap<Dist, String> getDistributionMap() {
